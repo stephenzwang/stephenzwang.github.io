@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -152,12 +153,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
          * scroll-reveal styles hide elements only under `.js`, so a visitor
          * without JavaScript never receives the class and never receives the
          * hidden state — no content is ever trapped behind a failed script.
+         *
+         * `next/script` with `beforeInteractive` rather than a raw <script>:
+         * React warns that a plain script tag rendered inside a component is
+         * never executed on the client, and Next injects this one into the
+         * initial HTML so it runs before hydration.
          */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: "document.documentElement.classList.add('js')",
-          }}
-        />
+        <Script id="reveal-js-flag" strategy="beforeInteractive">
+          {`document.documentElement.classList.add('js')`}
+        </Script>
 
         <a
           href="#main-content"

@@ -11,8 +11,8 @@ import { useEffect, useRef } from "react";
  * purely decorative (`aria-hidden`).
  *
  * Accessibility / performance:
- *  - `prefers-reduced-motion: reduce` renders a single static frame and
- *    stops the loop entirely.
+ *  - The reduced-motion preference is deliberately not honoured (see the note
+ *    in `app/globals.css`), so the loop always runs.
  *  - The animation loop is suspended while the tab is hidden.
  *  - Device pixel ratio is capped so 3x displays do not render 9x the pixels.
  *  - Everything is disposed on unmount — geometries, material, renderer.
@@ -31,8 +31,6 @@ export function HeroBackdrop({ className = "" }: { className?: string }) {
      */
     let disposed = false;
     let cleanup: (() => void) | undefined;
-
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     void (async () => {
       const THREE = await import("three");
@@ -194,7 +192,13 @@ export function HeroBackdrop({ className = "" }: { className?: string }) {
 
       let frame = 0;
       let running = true;
-      const clock = new THREE.Clock();
+      /*
+       * `Timer` replaces the deprecated `Clock`. Connecting it to the document
+       * lets it use the Page Visibility API, so restoring a backgrounded tab
+       * cannot produce one enormous delta and jump the field.
+       */
+      const timer = new THREE.Timer();
+      timer.connect(document);
 
       const renderFrame = (elapsed: number) => {
         // Ease the pointer so the camera never snaps.
@@ -219,26 +223,22 @@ export function HeroBackdrop({ className = "" }: { className?: string }) {
       const animate = () => {
         if (!running) return;
         frame = window.requestAnimationFrame(animate);
-        renderFrame(clock.getElapsedTime());
+        timer.update();
+        renderFrame(timer.getElapsed());
       };
 
       const onVisibilityChange = () => {
         if (document.hidden) {
           running = false;
           window.cancelAnimationFrame(frame);
-        } else if (!reduceMotion) {
+        } else {
           running = true;
           animate();
         }
       };
       document.addEventListener("visibilitychange", onVisibilityChange);
 
-      if (reduceMotion) {
-        // One static frame — no loop.
-        renderFrame(0);
-      } else {
-        animate();
-      }
+      animate();
 
       cleanup = () => {
         running = false;
@@ -253,6 +253,8 @@ export function HeroBackdrop({ className = "" }: { className?: string }) {
         farGeometry.dispose();
         farMaterial.dispose();
         sprite.dispose();
+        timer.disconnect();
+        timer.dispose();
         renderer.dispose();
 
         if (renderer.domElement.parentNode === container) {

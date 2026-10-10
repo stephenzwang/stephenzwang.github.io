@@ -21,12 +21,12 @@ export function ScrollReveal() {
     );
     if (elements.length === 0) return;
 
-    const prefersReducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-
-    /* No observer (or motion is unwelcome): show everything at once. */
-    if (prefersReducedMotion || !("IntersectionObserver" in window)) {
+    /*
+     * Without IntersectionObserver, show everything at once rather than leave
+     * it hidden. The reduced-motion preference is deliberately NOT honoured
+     * here — see the note at the end of `app/globals.css`.
+     */
+    if (!("IntersectionObserver" in window)) {
       for (const el of elements) el.classList.add("is-visible");
       return;
     }

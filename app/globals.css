@@ -56,10 +56,10 @@ html {
   scroll-padding-top: 5.5rem;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
+/* Smooth in-page anchor scrolling, for everyone — see the reduced-motion note
+   at the end of this file for why the media query was removed. */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
@@ -242,25 +242,17 @@ body {
   }
 }
 
-/* Reduced motion: everything is simply present, with no movement at all. */
-@media (prefers-reduced-motion: reduce) {
-  .js .reveal,
-  .js .word-reveal > span {
-    opacity: 1;
-    transform: none;
-    transition: none;
-    animation: none;
-  }
-}
-
-/* Reduced motion: kill transitions and any incidental animation. */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
-}
+/* --------------------------------------------------------------------------
+   NOTE ON `prefers-reduced-motion`
+   --------------------------------------------------------------------------
+   This site deliberately does NOT honour the reduced-motion preference — the
+   animations play for every visitor. That was a conscious choice (2026-10-10),
+   taken with the trade-off understood: it overrides an explicit OS-level user
+   setting, and continuous motion can be uncomfortable for people with
+   vestibular disorders. If that ever needs revisiting, the previous behaviour
+   was two `@media (prefers-reduced-motion: reduce)` blocks here that set
+   `opacity: 1; transform: none; transition: none; animation: none` on
+   `.reveal` / `.word-reveal > span`, plus a global block zeroing
+   `animation-duration` and `transition-duration` — and matching checks in
+   `ScrollReveal.tsx` and `HeroBackdrop.tsx`. Notes in `.workbuddy-ai/memory/`.
+   -------------------------------------------------------------------------- */
