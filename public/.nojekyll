@@ -1,0 +1,2 @@
+# GitHub Pages serves files starting with an underscore (like Next.js's `_next/`)
+# only when Jekyll processing is disabled. This file disables it.

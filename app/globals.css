@@ -1,0 +1,266 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Design tokens (Tailwind v4 CSS-first config)
+   ========================================================================== */
+@theme {
+  /* Surfaces — deep, low-saturation navy/slate for a professional dark theme */
+  --color-ink-950: #05080e;
+  --color-ink-900: #090d15;
+  --color-ink-850: #0c111b;
+  --color-ink-800: #101724;
+  --color-ink-750: #141c2c;
+  --color-ink-700: #1b2436;
+  --color-ink-600: #263149;
+  --color-ink-500: #33405c;
+  --color-line: #1e2739;
+  --color-line-strong: #2a3550;
+
+  /* Text */
+  --color-fg: #e8edf6;
+  --color-fg-muted: #9aa8bf;
+  --color-fg-subtle: #6d7c94;
+
+  /* Accent — a single azure accent, used sparingly */
+  --color-accent-300: #9dc2ff;
+  --color-accent-400: #6ba4ff;
+  --color-accent-500: #3d82ff;
+  --color-accent-600: #2563eb;
+  --color-accent-700: #1d4ed8;
+  --color-cyan-accent: #22d3ee;
+
+  /* Typography */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-mono-code), ui-monospace, SFMono-Regular, "SF Mono",
+    Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+:root {
+  color-scheme: dark;
+  scrollbar-color: var(--color-ink-600) var(--color-ink-950);
+}
+
+* {
+  min-width: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: 5.5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  background-color: var(--color-ink-950);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: color-mix(in oklab, var(--color-accent-500) 35%, transparent);
+  color: #fff;
+}
+
+/* Consistent, clearly visible keyboard focus everywhere. */
+:focus-visible {
+  outline: 2px solid var(--color-accent-400);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* Thin custom scrollbar (progressive enhancement). */
+@supports selector(::-webkit-scrollbar) {
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-ink-950);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-ink-600);
+    border-radius: 9999px;
+    border: 2px solid var(--color-ink-950);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-ink-500);
+  }
+}
+
+/* ==========================================================================
+   Utilities
+   ========================================================================== */
+
+/* Page gutter + max width, shared by every section and the navbar. */
+@utility container-page {
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+
+  @media (min-width: 640px) {
+    padding-inline: 2rem;
+  }
+  @media (min-width: 1024px) {
+    padding-inline: 2.5rem;
+  }
+}
+
+/* Subtle card surface used across sections. */
+@utility surface {
+  background-color: color-mix(in oklab, var(--color-ink-850) 88%, transparent);
+  border: 1px solid var(--color-line);
+  border-radius: 1rem;
+}
+
+/* Hairline separator that fades out at both ends. */
+@utility hairline {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-line-strong) 20%,
+    var(--color-line) 80%,
+    transparent
+  );
+}
+
+/* ==========================================================================
+   Decorative background — very subtle grid + accent glow.
+   Kept as CSS (no JS, no images) so it costs nothing at runtime.
+   ========================================================================== */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.055) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+.bg-glow {
+  background:
+    radial-gradient(
+      42rem 26rem at 78% -8%,
+      color-mix(in oklab, var(--color-accent-500) 20%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      32rem 22rem at 6% 4%,
+      color-mix(in oklab, var(--color-cyan-accent) 10%, transparent),
+      transparent 70%
+    );
+}
+
+/* ==========================================================================
+   Scroll reveal
+   --------------------------------------------------------------------------
+   Driven by IntersectionObserver (components/ScrollReveal.tsx), which adds
+   `.is-visible` the first time an element enters the viewport.
+
+   This deliberately does NOT use `animation-timeline: view()`. That is a
+   Chrome/Edge-only feature — Safari and Firefox do not support it, so those
+   visitors saw no animation whatsoever, and even in Chrome the entry range
+   completed almost instantly. IntersectionObserver + transitions works in
+   every browser.
+
+   The hidden state is gated behind `.js`, which an inline script in
+   app/layout.tsx sets before first paint. Without JavaScript the class is
+   never added, so nothing is ever left invisible — no noscript handling needed.
+   ========================================================================== */
+.reveal {
+  /* Default: visible. Overridden below only once JS confirms it can reveal. */
+  opacity: 1;
+}
+
+.js .reveal {
+  opacity: 0;
+  transform: translate3d(var(--reveal-x, 0), var(--reveal-y, 26px), 0)
+    scale(var(--reveal-scale, 1));
+  transition:
+    opacity var(--reveal-duration, 720ms) var(--ease-out-soft) var(--reveal-delay, 0ms),
+    transform var(--reveal-duration, 720ms) var(--ease-out-soft) var(--reveal-delay, 0ms);
+}
+
+/* Direction variants — opt in with data-reveal="fade|left|scale". */
+.js .reveal[data-reveal="fade"] {
+  --reveal-y: 0px;
+}
+
+.js .reveal[data-reveal="left"] {
+  --reveal-x: -34px;
+  --reveal-y: 0px;
+}
+
+.js .reveal[data-reveal="scale"] {
+  --reveal-y: 16px;
+  --reveal-scale: 0.965;
+}
+
+.js .reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* --------------------------------------------------------------------------
+   Word-by-word headline entrance — used on the hero <h1>. Words are wrapped
+   in inline spans, so the text content and accessible name are unchanged.
+   -------------------------------------------------------------------------- */
+.js .word-reveal > span {
+  display: inline-block;
+  opacity: 0;
+  transform: translate3d(0, 0.42em, 0);
+}
+
+.js .word-reveal.is-visible > span {
+  animation: word-up 760ms var(--ease-out-soft) both;
+  animation-delay: var(--word-delay, 0ms);
+}
+
+@keyframes word-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.42em, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Reduced motion: everything is simply present, with no movement at all. */
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal,
+  .js .word-reveal > span {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Reduced motion: kill transitions and any incidental animation. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

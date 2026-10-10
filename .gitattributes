@@ -1,0 +1,24 @@
+# Normalise text files to LF in the repository, and stop Git from rewriting
+# them on checkout regardless of the developer's core.autocrlf setting.
+* text=auto eol=lf
+
+# Binary assets must never be touched.
+#
+# public/resume.pdf is pure ASCII with no NUL bytes, so Git's auto-detection
+# classifies it as *text*. On checkout that silently rewrites LF to CRLF, which
+# shifts every byte offset and breaks the PDF's xref table. Marking it binary
+# prevents any conversion.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+
+# SVG is text and should stay normalised.
+*.svg text eol=lf
